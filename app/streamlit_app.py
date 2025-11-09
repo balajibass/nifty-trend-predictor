@@ -1,7 +1,28 @@
 # streamlit_app.py
 import streamlit as st
 import json, os, time
+import streamlit as st
 from app.model import predict_next_day, load_data
+
+st.set_page_config(page_title="Nifty Trend Predictor", page_icon="📊")
+
+st.title("📊 Nifty 50 Market Trend Predictor")
+st.markdown("Get AI-based prediction for next market move!")
+
+if st.button("Fetch Latest Price"):
+    df = load_data()
+    st.dataframe(df.tail(5))
+
+if st.button("Predict Next Day Trend"):
+    with st.spinner("Predicting... Please wait ⏳"):
+        try:
+            trend, confidence = predict_next_day()
+            st.success(f"**Predicted Trend:** {trend}")
+            st.info(f"**Confidence:** {confidence}%")
+        except Exception as e:
+            st.error(f"❌ Error: {str(e)}")
+
+st.caption("Powered by Machine Learning • Built with Streamlit Cloud 🚀")
 from kite_client import KiteWrapper
 from telegram_client import TelegramClient
 from gsheet_logger import GSheetLogger
