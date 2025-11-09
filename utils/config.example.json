@@ -1,0 +1,13 @@
+{
+    "kite_api_key": "",
+    "kite_api_secret": "",
+    "kite_access_token": "",
+    "telegram_bot_token": "",
+    "telegram_chat_id": "",
+    "google_service_account_json": "utils/sa_credentials.json",
+    "google_sheet_name": "Nifty_Trade_Logs",
+    "nifty_ticker": "^NSEI",
+    "data_period": "10y",
+    "mode": "paper",
+    "default_lot_size": 1
+}
