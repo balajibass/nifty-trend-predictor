@@ -1,11 +1,11 @@
 # streamlit_app.py
 import streamlit as st
 import json, os, time
-from app.model import predict_next_day, load_model, fetch_data
-from app.kite_client import KiteWrapper
-from app.telegram_client import TelegramClient
-from app.gsheet_logger import GSheetLogger
-from app.trade_manager import record_trade, get_ledger
+from model import predict_next_day, load_model, fetch_data
+from kite_client import KiteWrapper
+from telegram_client import TelegramClient
+from gsheet_logger import GSheetLogger
+from trade_manager import record_trade, get_ledger
 import pandas as pd
 import plotly.express as px
 
