@@ -24,28 +24,32 @@ def fetch_data(symbol="^NSEI", period="3mo", interval="1d"):
 def feature_engineer(df):
     df = df.copy()
 
-    # Flatten Close to 1D if 2D
-    if len(df['Close'].shape) > 1:
-        df['Close'] = df['Close'].squeeze()
+    # Ensure Close column is numeric and 1D
+    if "Close" in df.columns:
+        df["Close"] = pd.to_numeric(df["Close"], errors="coerce")
+        df["Close"] = np.array(df["Close"]).reshape(-1)   # flatten to 1D
+    else:
+        raise ValueError("❌ DataFrame does not contain 'Close' column")
 
-    # Technical Indicators
-    df["SMA_5"] = SMAIndicator(df["Close"].astype(float), window=5).sma_indicator()
-    df["SMA_20"] = SMAIndicator(df["Close"].astype(float), window=20).sma_indicator()
+    # Technical Indicators (with safe casting)
+    close_series = pd.Series(df["Close"].astype(float))
 
-    macd = MACD(df["Close"].astype(float))
+    df["SMA_5"] = SMAIndicator(close_series, window=5).sma_indicator()
+    df["SMA_20"] = SMAIndicator(close_series, window=20).sma_indicator()
+
+    macd = MACD(close_series)
     df["MACD"] = macd.macd()
     df["MACD_signal"] = macd.macd_signal()
 
-    rsi = RSIIndicator(df["Close"].astype(float), window=14)
+    rsi = RSIIndicator(close_series, window=14)
     df["RSI"] = rsi.rsi()
 
-    bb = BollingerBands(df["Close"].astype(float))
+    bb = BollingerBands(close_series)
     df["BB_high"] = bb.bollinger_hband()
     df["BB_low"] = bb.bollinger_lband()
 
     df.dropna(inplace=True)
     return df
-
 
 # -----------------------------
 # Model Trainer (optional retraining)
