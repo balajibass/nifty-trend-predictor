@@ -10,42 +10,38 @@ import os
 
 MODEL_PATH = "trained_model.pkl"
 
+
 # ===============================
-# Load NIFTY Data
+# 1️⃣ Load NIFTY Data
 # ===============================
 def load_data(ticker="^NSEI", period="3mo", interval="1d"):
     df = yf.download(ticker, period=period, interval=interval)
     df.dropna(inplace=True)
+    df.reset_index(inplace=True)
     return df
 
 
 # ===============================
-# Feature Engineering
+# 2️⃣ Feature Engineering
 # ===============================
 def feature_engineer(df):
     df = df.copy()
 
-    # Ensure Close column is numeric 1D
-    if "Close" not in df.columns:
-        raise ValueError("❌ DataFrame missing 'Close' column")
-    if isinstance(df["Close"], pd.DataFrame):
-        df["Close"] = df["Close"].iloc[:, 0]
+    # Ensure 'Close' is a clean numeric Series
+    close = df["Close"].astype(float)
 
-    df["Close"] = pd.to_numeric(df["Close"], errors="coerce")
-    df.dropna(subset=["Close"], inplace=True)
-    close_series = df["Close"].astype(float)
+    # Technical Indicators
+    df["SMA_5"] = SMAIndicator(close, window=5).sma_indicator()
+    df["SMA_20"] = SMAIndicator(close, window=20).sma_indicator()
 
-    df["SMA_5"] = SMAIndicator(close_series, window=5).sma_indicator()
-    df["SMA_20"] = SMAIndicator(close_series, window=20).sma_indicator()
-
-    macd = MACD(close_series)
+    macd = MACD(close)
     df["MACD"] = macd.macd()
     df["MACD_signal"] = macd.macd_signal()
 
-    rsi = RSIIndicator(close_series, window=14)
+    rsi = RSIIndicator(close, window=14)
     df["RSI"] = rsi.rsi()
 
-    bb = BollingerBands(close_series)
+    bb = BollingerBands(close)
     df["BB_high"] = bb.bollinger_hband()
     df["BB_low"] = bb.bollinger_lband()
 
@@ -54,7 +50,7 @@ def feature_engineer(df):
 
 
 # ===============================
-# Train & Save Model
+# 3️⃣ Train Model
 # ===============================
 def train_and_save():
     df = load_data()
@@ -64,15 +60,14 @@ def train_and_save():
     X = df[["SMA_5", "SMA_20", "MACD", "MACD_signal", "RSI", "BB_high", "BB_low"]]
     y = df["Target"]
 
-    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    model = RandomForestClassifier(n_estimators=200, random_state=42)
     model.fit(X, y)
-
     joblib.dump(model, MODEL_PATH)
     return model
 
 
 # ===============================
-# Load or Train Model
+# 4️⃣ Load Model
 # ===============================
 def load_model():
     if os.path.exists(MODEL_PATH):
@@ -82,16 +77,16 @@ def load_model():
 
 
 # ===============================
-# Predict Next Day
+# 5️⃣ Predict Next Day
 # ===============================
 def predict_next_day():
     df = load_data()
     df = feature_engineer(df)
     model = load_model()
 
-    X_latest = df[["SMA_5", "SMA_20", "MACD", "MACD_signal", "RSI", "BB_high", "BB_low"]].tail(1)
-    y_pred = model.predict(X_latest)[0]
-    conf = max(model.predict_proba(X_latest)[0])
+    latest = df[["SMA_5", "SMA_20", "MACD", "MACD_signal", "RSI", "BB_high", "BB_low"]].iloc[-1:].values
+    y_pred = model.predict(latest)[0]
+    conf = model.predict_proba(latest)[0].max()
 
     trend = "📈 Uptrend Expected Tomorrow" if y_pred == 1 else "📉 Downtrend Expected Tomorrow"
     return trend, round(conf * 100, 2)
