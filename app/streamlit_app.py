@@ -1,7 +1,7 @@
 # streamlit_app.py
 import streamlit as st
 import json, os, time
-from model import predict_next_day, load_model, fetch_data
+from app.model import predict_next_day, load_data
 from kite_client import KiteWrapper
 from telegram_client import TelegramClient
 from gsheet_logger import GSheetLogger
