@@ -2,27 +2,31 @@
 import streamlit as st
 import json, os, time
 import streamlit as st
-from app.model import predict_next_day, load_data
+from model import predict_next_day, load_data
 
-st.set_page_config(page_title="Nifty Trend Predictor", page_icon="📊")
+st.set_page_config(page_title="Nifty Trend Predictor", page_icon="📊", layout="centered")
 
 st.title("📊 Nifty 50 Market Trend Predictor")
-st.markdown("Get AI-based prediction for next market move!")
+st.markdown("AI-based short-term trend prediction using Technical Indicators and ML.")
 
-if st.button("Fetch Latest Price"):
+st.divider()
+
+if st.button("📥 Load Latest Market Data"):
     df = load_data()
+    st.success("✅ Latest data fetched successfully!")
     st.dataframe(df.tail(5))
 
-if st.button("Predict Next Day Trend"):
-    with st.spinner("Predicting... Please wait ⏳"):
+if st.button("🤖 Predict Next Day Trend"):
+    with st.spinner("Analyzing NIFTY data... Please wait ⏳"):
         try:
             trend, confidence = predict_next_day()
-            st.success(f"**Predicted Trend:** {trend}")
+            st.success(f"**Prediction:** {trend}")
             st.info(f"**Confidence:** {confidence}%")
         except Exception as e:
-            st.error(f"❌ Error: {str(e)}")
+            st.error(f"❌ Error: {e}")
 
-st.caption("Powered by Machine Learning • Built with Streamlit Cloud 🚀")
+st.divider()
+st.caption("Built with ❤️ using Streamlit + yFinance + scikit-learn")
 from kite_client import KiteWrapper
 from telegram_client import TelegramClient
 from gsheet_logger import GSheetLogger
